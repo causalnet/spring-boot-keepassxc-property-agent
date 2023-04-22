@@ -11,6 +11,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.Map;
 
 public class KeePassXCPropertyAgent
 {
@@ -64,10 +65,18 @@ public class KeePassXCPropertyAgent
                 if (sources.contains(org.springframework.core.env.CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME))
                 {
                     java.util.Map map = new java.util.LinkedHashMap();
-                    map.put("apphometest.myValue", "keepass-replaced");
+                    au.net.causal.springboot.keepassxcpropertyagent.KeePassXCPropertyAgent.doKeepass(map);
                     sources.addAfter(org.springframework.core.env.CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME, new org.springframework.core.env.MapPropertySource("keepassxc", map));
                 }
             }
         """);
+    }
+
+    public static void doKeepass(Map<String, Object> map)
+    {
+        System.out.println("I will do keepass");
+        map.put("apphometest.myValue", "keepass-replaced-2");
+
+
     }
 }
