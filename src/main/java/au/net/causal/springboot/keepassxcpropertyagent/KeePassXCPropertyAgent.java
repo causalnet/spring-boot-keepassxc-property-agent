@@ -12,12 +12,17 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class KeePassXCPropertyAgent
 {
+    private static AgentConfiguration config;
+
     public static void premain(String agentArgs, Instrumentation inst)
     {
+        config = AgentConfiguration.parse(agentArgs);
         KeePassXCPropertyAgent agent = new KeePassXCPropertyAgent();
         agent.run(inst);
     }
@@ -79,18 +84,51 @@ public class KeePassXCPropertyAgent
 
     public static void doKeepass(Map<String, Object> map)
     {
-        System.out.println("I will do keepass");
-        //map.put("apphometest.myValue", "keepass-replaced-2");
-
         KeepassXCPropertyReader reader = new KeepassXCPropertyReader();
 
         try
         {
-            reader.readProperties("spring://test", map);
+            reader.readProperties(config.getEntryUri(), map);
         }
         catch (IOException e)
         {
             System.err.println("Failed to read values from KeepassXC: " + e);
+        }
+    }
+
+    private static class AgentConfiguration
+    {
+        private String entryUri = "spring://app";
+
+        public static AgentConfiguration parse(String argsString)
+        {
+            if (argsString == null)
+                argsString = "";
+
+            Map<String, String> argMap = new LinkedHashMap<>();
+
+            for (String argSegment : argsString.split(Pattern.quote(",")))
+            {
+                String[] argSplit = argSegment.split(Pattern.quote("="), 2);
+                if (argSplit.length > 1)
+                    argMap.put(argSplit[0], argSplit[1]);
+            }
+
+            AgentConfiguration args = new AgentConfiguration();
+            if (argMap.containsKey("entryUri"))
+                args.setEntryUri(argMap.get("entryUri"));
+
+            return args;
+        }
+
+        public String getEntryUri()
+        {
+            return entryUri;
+        }
+
+        public void setEntryUri(String entryUri)
+        {
+            this.entryUri = entryUri;
         }
     }
 }
