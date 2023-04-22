@@ -7,6 +7,7 @@ import javassist.CtMethod;
 import javassist.LoaderClassPath;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
@@ -62,11 +63,15 @@ public class KeePassXCPropertyAgent
             {
                 org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent event = (org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent)$1;
                 org.springframework.core.env.MutablePropertySources sources = event.getEnvironment().getPropertySources();
+                java.util.Map map = new java.util.LinkedHashMap();
+                au.net.causal.springboot.keepassxcpropertyagent.KeePassXCPropertyAgent.doKeepass(map);
                 if (sources.contains(org.springframework.core.env.CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME))
                 {
-                    java.util.Map map = new java.util.LinkedHashMap();
-                    au.net.causal.springboot.keepassxcpropertyagent.KeePassXCPropertyAgent.doKeepass(map);
                     sources.addAfter(org.springframework.core.env.CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME, new org.springframework.core.env.MapPropertySource("keepassxc", map));
+                }
+                else
+                {
+                    sources.addFirst(new org.springframework.core.env.MapPropertySource("keepassxc", map));
                 }
             }
         """);
@@ -75,8 +80,17 @@ public class KeePassXCPropertyAgent
     public static void doKeepass(Map<String, Object> map)
     {
         System.out.println("I will do keepass");
-        map.put("apphometest.myValue", "keepass-replaced-2");
+        //map.put("apphometest.myValue", "keepass-replaced-2");
 
+        KeepassXCPropertyReader reader = new KeepassXCPropertyReader();
 
+        try
+        {
+            reader.readProperties("spring://test", map);
+        }
+        catch (IOException e)
+        {
+            System.err.println("Failed to read values from KeepassXC: " + e);
+        }
     }
 }
