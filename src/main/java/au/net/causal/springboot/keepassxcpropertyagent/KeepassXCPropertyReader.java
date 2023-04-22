@@ -5,8 +5,6 @@ import au.net.causal.springboot.keepassxcpropertyagent.connection.KeepassExtensi
 import au.net.causal.springboot.keepassxcpropertyagent.connection.KeepassProxy;
 import au.net.causal.springboot.keepassxcpropertyagent.connection.StandardKeepassCredentialsStore;
 import org.purejava.KeepassProxyAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -21,10 +19,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static au.net.causal.springboot.keepassxcpropertyagent.logging.Logging.log;
+
 public class KeepassXCPropertyReader
 {
-    private static final Logger log = LoggerFactory.getLogger(KeepassXCPropertyReader.class);
-
     private static final Path CREDENTIALS_STORE_BASE_DIRECTORY = Path.of(System.getProperty("user.home"), ".spring-boot-keepassxc-property-agent");
 
     private final Clock clock = Clock.systemUTC();
@@ -98,7 +96,7 @@ public class KeepassXCPropertyReader
             Duration remainingTime = Duration.between(now, connectionMaxTime).truncatedTo(ChronoUnit.SECONDS); //truncate to seconds for a nicer message
             if (lastMessageTime.plus(settings.getUnlockMessageRepeatTime()).isBefore(now))
             {
-                log.error(failMessage + " (timeout in " + remainingTime + ")...");
+                log(failMessage + " (timeout in " + remainingTime + ")...");
                 lastMessageTime = now;
             }
 
@@ -115,7 +113,7 @@ public class KeepassXCPropertyReader
         }
 
         String msg = timeoutMessage + " (within " + settings.getUnlockMaxWaitTime() + ")";
-        log.error(msg);
+        log(msg);
         throw new IOException(msg);
     }
 
@@ -143,18 +141,18 @@ public class KeepassXCPropertyReader
 
         try (KeepassProxy kpa = connectKeepassProxy(credentialsStore, settings))
         {
-            log.debug("Need to read entry '" + entryName + "' from KeepassXC");
+            //log("Need to read entry '" + entryName + "' from KeepassXC");
             Map<String, ?> results = kpa.getLogins(entryName, null, true, List.of(kpa.exportConnection()));
             if (results == null)
             {
-                log.warn("Entry not found for " + entryName);
+                log("Entry not found for " + entryName);
                 return;
             }
 
             Object entriesObj = results.get("entries");
             if (!(entriesObj instanceof Collection<?>))
             {
-                log.debug("No entries value for " + entryName);
+                //log.debug("No entries value for " + entryName);
                 return;
             }
 

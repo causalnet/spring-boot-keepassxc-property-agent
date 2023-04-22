@@ -189,6 +189,9 @@
                         </goals>
                         <configuration>
                             <skip>${skipShade}</skip>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
                             <relocations>
                                 <relocation>
                                     <pattern>javassist</pattern>

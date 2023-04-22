@@ -6,8 +6,6 @@ import org.keepassxc.LinuxMacConnection;
 import org.keepassxc.WindowsConnection;
 import org.purejava.Credentials;
 import org.purejava.KeepassProxyAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -17,15 +15,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static au.net.causal.springboot.keepassxcpropertyagent.logging.Logging.log;
+
 /**
- * Replacement for KeepassProxyAccess that saves configuration in a way more suitable for a Maven extension.
+ * Replacement for KeepassProxyAccess that saves configuration in a way more suitable for the agent.
  *
  * @see org.purejava.KeepassProxyAccess
  */
 public class KeepassProxy implements AutoCloseable
 {
-    private static final Logger log = LoggerFactory.getLogger(KeepassProxy.class);
-
     private final Connection connection;
     private final KeepassCredentialsStore credentialsStore;
     private final CredentialsUpdater credentialsUpdater;
@@ -61,7 +59,7 @@ public class KeepassProxy implements AutoCloseable
         }
         catch (IOException e)
         {
-            log.error("Error saving KeepassXC pairing credentials to file: " + e.getMessage(), e);
+            log("Error saving KeepassXC pairing credentials to file: " + e.getMessage(), e);
 
             //Couldn't save, don't throw runtimeexception because that stops entire decryptor from working
         }

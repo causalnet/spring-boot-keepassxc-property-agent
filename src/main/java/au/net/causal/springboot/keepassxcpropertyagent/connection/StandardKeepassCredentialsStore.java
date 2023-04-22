@@ -16,13 +16,13 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Objects;
 import java.util.Set;
 
+import static au.net.causal.springboot.keepassxcpropertyagent.logging.Logging.log;
+
 /**
  * Stores credentials as a serialized credentials object.
  */
 public class StandardKeepassCredentialsStore implements KeepassCredentialsStore
 {
-    private static final Logger log = LoggerFactory.getLogger(StandardKeepassCredentialsStore.class);
-
     private final Path storeFile;
 
     public StandardKeepassCredentialsStore(Path storeFile)
@@ -43,7 +43,7 @@ public class StandardKeepassCredentialsStore implements KeepassCredentialsStore
         }
         catch (IOException | UnsupportedOperationException e)
         {
-            log.debug("Failed to set POSIX permissions on store file: " + e, e);
+            //log.debug("Failed to set POSIX permissions on store file: " + e, e);
 
             //Posix attributes may not be supported on this file system, or it just failed for some reason, fall back to not trying to set permissions
             tmpPath = Files.createTempFile(storeFile.getParent(), storeFile.getFileName().toString(), ".tmp");
@@ -69,7 +69,7 @@ public class StandardKeepassCredentialsStore implements KeepassCredentialsStore
         catch (ObjectStreamException | ClassNotFoundException e)
         {
             //If the file is corrupted (empty or bad data) log a warning and just re-pair with Keepass
-            log.error("Keepass Maven extension credentials file corrupted - will attempt recreation and repair with KeepassXC: " + e, e);
+            log("KeepassXC property agent credentials file corrupted - will attempt recreation and repair with KeepassXC: " + e, e);
             return null;
         }
         //Normal IO exception will fail like normal - a more serious data reading issue
