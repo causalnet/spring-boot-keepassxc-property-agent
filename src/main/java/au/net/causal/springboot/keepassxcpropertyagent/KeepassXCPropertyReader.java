@@ -1,7 +1,6 @@
 package au.net.causal.springboot.keepassxcpropertyagent;
 
 import au.net.causal.springboot.keepassxcpropertyagent.connection.KeepassCredentialsStore;
-import au.net.causal.springboot.keepassxcpropertyagent.connection.KeepassExtensionSettings;
 import au.net.causal.springboot.keepassxcpropertyagent.connection.KeepassProxy;
 import au.net.causal.springboot.keepassxcpropertyagent.connection.StandardKeepassCredentialsStore;
 import org.purejava.KeepassProxyAccessException;
@@ -18,17 +17,24 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static au.net.causal.springboot.keepassxcpropertyagent.logging.Logging.log;
+import static au.net.causal.springboot.keepassxcpropertyagent.logging.Logging.*;
 
 public class KeepassXCPropertyReader
 {
     private static final Path CREDENTIALS_STORE_BASE_DIRECTORY = Path.of(System.getProperty("user.home"), ".spring-boot-keepassxc-property-agent");
 
     private final Clock clock = Clock.systemUTC();
-    private final String propertyPrefix = "KPH: spring:";
 
-    private KeepassProxy connectKeepassProxy(KeepassCredentialsStore credentialsStore, KeepassExtensionSettings settings)
+    private final AgentConfiguration settings;
+
+    public KeepassXCPropertyReader(AgentConfiguration settings)
+    {
+        this.settings = Objects.requireNonNull(settings);
+    }
+
+    private KeepassProxy connectKeepassProxy(KeepassCredentialsStore credentialsStore)
     throws IOException
     {
         KeepassProxy kpa = new KeepassProxy(credentialsStore);
@@ -68,7 +74,7 @@ public class KeepassXCPropertyReader
      * @param timeoutMessage message to display on timeout.
      * @param block the code block to execute, possibly multiple times.
      */
-    private void tryRepeat(KeepassExtensionSettings settings, String failMessage, String timeoutMessage, RepeatBlock block)
+    private void tryRepeat(AgentConfiguration settings, String failMessage, String timeoutMessage, RepeatBlock block)
     throws IOException
     {
         IOException failureException = null;
@@ -120,11 +126,9 @@ public class KeepassXCPropertyReader
     /**
      * Loads the credentials/pairing store for our KeepassXC client.  The credentials from this store are used for pairing with KeepassXC as a client.
      *
-     * @param settings settings that specify where the credentials store exists.
-     *
      * @return the store.
      */
-    protected KeepassCredentialsStore createCredentialsStore(KeepassExtensionSettings settings)
+    protected KeepassCredentialsStore createCredentialsStore()
     {
         //May be absolute, but if relative resolve from the .m2 directory
         Path credentialsStoreFile = CREDENTIALS_STORE_BASE_DIRECTORY.resolve(settings.getCredentialsStoreFile());
@@ -135,11 +139,9 @@ public class KeepassXCPropertyReader
     public void readProperties(String entryName, Map<String, Object> valueMap)
     throws IOException
     {
-        KeepassExtensionSettings settings = new KeepassExtensionSettings();
-        settings.configure(Map.of()); //TODO customizable config
-        KeepassCredentialsStore credentialsStore = createCredentialsStore(settings);
+        KeepassCredentialsStore credentialsStore = createCredentialsStore();
 
-        try (KeepassProxy kpa = connectKeepassProxy(credentialsStore, settings))
+        try (KeepassProxy kpa = connectKeepassProxy(credentialsStore))
         {
             log("Reading properties from KeePassXC entry: " + entryName);
             Map<String, ?> results = kpa.getLogins(entryName, null, true, List.of(kpa.exportConnection()));
@@ -168,9 +170,9 @@ public class KeepassXCPropertyReader
             {
                 entry.getStringFields().forEach((k, v) ->
                 {
-                    if (k.startsWith(propertyPrefix))
+                    if (k.startsWith(settings.getPropertyPrefix()))
                     {
-                        String key = k.substring(propertyPrefix.length()).trim();
+                        String key = k.substring(settings.getPropertyPrefix().length()).trim();
                         Object value = v;
                         if (value instanceof String)
                             value = value.toString().trim();

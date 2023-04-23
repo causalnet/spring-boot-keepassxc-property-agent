@@ -82,7 +82,7 @@ public class KeePassXCPropertyAgent
 
     public static void doKeepass(Map<String, Object> map)
     {
-        KeepassXCPropertyReader reader = new KeepassXCPropertyReader();
+        KeepassXCPropertyReader reader = new KeepassXCPropertyReader(config);
 
         try
         {
