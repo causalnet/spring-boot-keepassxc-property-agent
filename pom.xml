@@ -7,6 +7,10 @@
     <packaging>jar</packaging>
 
     <name>Spring Boot KeePassXC Property Agent</name>
+    <description>
+        A Java agent that can be used on Spring Boot applications to add additional configuration properties
+        from a paired running instance of KeepassXC.
+    </description>
     <url>https://github.com/causalnet/spring-boot-keepassxc-property-agent</url>
 
     <inceptionYear>2023</inceptionYear>
