@@ -12,9 +12,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class KeePassXCPropertyAgent
 {
@@ -88,7 +86,10 @@ public class KeePassXCPropertyAgent
 
         try
         {
-            reader.readProperties(config.getEntryUri(), map);
+            for (String entryUri : config.getEntryUris())
+            {
+                reader.readProperties(entryUri, map);
+            }
         }
         catch (IOException e)
         {
@@ -96,39 +97,4 @@ public class KeePassXCPropertyAgent
         }
     }
 
-    private static class AgentConfiguration
-    {
-        private String entryUri = "spring://app";
-
-        public static AgentConfiguration parse(String argsString)
-        {
-            if (argsString == null)
-                argsString = "";
-
-            Map<String, String> argMap = new LinkedHashMap<>();
-
-            for (String argSegment : argsString.split(Pattern.quote(",")))
-            {
-                String[] argSplit = argSegment.split(Pattern.quote("="), 2);
-                if (argSplit.length > 1)
-                    argMap.put(argSplit[0], argSplit[1]);
-            }
-
-            AgentConfiguration args = new AgentConfiguration();
-            if (argMap.containsKey("entryUri"))
-                args.setEntryUri(argMap.get("entryUri"));
-
-            return args;
-        }
-
-        public String getEntryUri()
-        {
-            return entryUri;
-        }
-
-        public void setEntryUri(String entryUri)
-        {
-            this.entryUri = entryUri;
-        }
-    }
 }

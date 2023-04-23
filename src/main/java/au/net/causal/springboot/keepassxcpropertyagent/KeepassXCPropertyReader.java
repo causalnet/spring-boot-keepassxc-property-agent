@@ -141,7 +141,7 @@ public class KeepassXCPropertyReader
 
         try (KeepassProxy kpa = connectKeepassProxy(credentialsStore, settings))
         {
-            //log("Need to read entry '" + entryName + "' from KeepassXC");
+            log("Reading properties from KeePassXC entry: " + entryName);
             Map<String, ?> results = kpa.getLogins(entryName, null, true, List.of(kpa.exportConnection()));
             if (results == null)
             {
