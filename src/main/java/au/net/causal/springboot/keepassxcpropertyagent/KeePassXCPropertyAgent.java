@@ -48,11 +48,18 @@ public class KeePassXCPropertyAgent
                         classfileBuffer = ctClass.toBytecode();
                         ctClass.detach();
                     }
+                    else
+                    {
+                        //No change
+                        classfileBuffer = null;
+                    }
                 }
                 catch (Throwable e)
                 {
                     e.printStackTrace();
+                    classfileBuffer = null;
                 }
+
                 return classfileBuffer;
             }
         });
